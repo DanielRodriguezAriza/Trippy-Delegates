@@ -3,9 +3,9 @@
 
 #include "delegate.h"
 
-//typedef Delegate<void, int> Print;
+typedef Delegate<void(int)> Print;
 
-DRA_MAKE_DELEGATE(void, (int), Print);
+//DRA_MAKE_DELEGATE(void, (int), Print);
 
 void PrintNumber(int num)
 {
@@ -24,7 +24,7 @@ void PrintThing(int t)
 
 
 
-typedef Delegate<int, int, int> Print2;
+typedef Delegate<int(int, int)> Print2;
 
 int PrintNumber2(int a, int b)
 {
@@ -47,8 +47,8 @@ int main()
 	p += PrintMoney;
 	p += PrintThing;
 	p += PrintNumber;
-	//p += [i](int x) -> void {printf("this is a test\n");};
-	p += [](int x) -> void {printf("this is a test\n");};
+	p += [i](int x) -> void {printf("this is a test\n");};
+	//p += [](int x) -> void {printf("this is a test\n");};
 	p -= PrintNumber;
 	p(1);
 	

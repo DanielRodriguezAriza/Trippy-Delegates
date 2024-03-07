@@ -17,8 +17,8 @@ extern "C" {
 
 #include <vector>
 
-#define DRA_INTERNAL_EXTRACT_ARGS(...) __VA_ARGS__
-#define DRA_MAKE_DELEGATE(ret, args, name) typedef Delegate<ret, DRA_INTERNAL_EXTRACT_ARGS args > name
+//#define DRA_INTERNAL_EXTRACT_ARGS(...) __VA_ARGS__
+//#define DRA_MAKE_DELEGATE(ret, args, name) typedef Delegate<ret, DRA_INTERNAL_EXTRACT_ARGS args > name
 
 template<typename Ret, typename ...Args>
 class InvokeList
@@ -98,8 +98,11 @@ public:
 };
 
 
+template<typename Signature>
+class Delegate;
+
 template<typename Ret, typename ...Args>
-class Delegate
+class Delegate<Ret(Args...)>
 {
 public:
 	
@@ -107,7 +110,7 @@ public:
 	:functions{}
 	{}
 	
-	Delegate(Ret (*fn) (Args...))
+	Delegate(Ret fn (Args...))
 	:functions{}
 	{
 		functions.RemoveFunctions();
@@ -117,7 +120,7 @@ public:
 	~Delegate()
 	{}
 	
-	Delegate &operator=(Ret (*fn) (Args...))
+	Delegate &operator=(Ret fn (Args...))
 	{
 		functions.RemoveFunctions();
 		functions.AddFunction(fn);
@@ -135,13 +138,13 @@ public:
 		return this->Invoke(args...);
 	}
 	
-	Delegate &operator+=(Ret (*fn) (Args...))
+	Delegate &operator+=(Ret fn (Args...))
 	{
 		functions.AddFunction(fn);
 		return *this;
 	}
 	
-	Delegate &operator-=(Ret (*fn) (Args...))
+	Delegate &operator-=(Ret fn (Args...))
 	{
 		functions.RemoveFunction(fn);
 		return *this;
