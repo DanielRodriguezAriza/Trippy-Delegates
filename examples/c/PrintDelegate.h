@@ -6,6 +6,6 @@
 #define ARGUMENTS int arg1, int arg2
 #define ARGUMENTS_NAMES arg1, arg2
 #define NAME PrintDelegate
-#include "c_delegate.h"
+#include "../../include/delegate.h"
 
 #endif

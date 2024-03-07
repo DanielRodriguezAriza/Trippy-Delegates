@@ -1,13 +1,9 @@
 #include <iostream>
 #include <vector>
 
-#include "delegate.h"
+#include "../../include/delegate.hpp"
 
-//typedef Delegate<void(int)> Print;
-
-//DRA_MAKE_DELEGATE(void, (int), Print);
-
-make_delegate(void(int), Print);
+delegate<void(int)> Print;
 
 void PrintNumber(int num)
 {
@@ -24,9 +20,6 @@ void PrintThing(int t)
 	printf("Thing! %d\n", t);
 }
 
-
-
-//typedef Delegate<int(int, int)> Print2;
 
 delegate<int(int,int)> Print2;
 
@@ -45,13 +38,11 @@ int PrintMoney2(int a, int b)
 
 int main()
 {
-	int i;
 	printf("\n\nPrint: (checking order keeping):\n");
 	Print p = PrintNumber;
 	p += PrintMoney;
 	p += PrintThing;
 	p += PrintNumber;
-	//p += [i](int x) -> void {printf("this is a test\n");};
 	p += [](int x) -> void {printf("this is a test\n");};
 	p -= PrintNumber;
 	p(1);
