@@ -15,78 +15,23 @@ extern "C" {
 
 #include <vector>
 
-
-template<typename T, typename ...Args>
-class DelegateExecutor
-{
-public:
-	T invokeFunctions(std::vector<T (*) (Args...)> &functions, Args ...args)
-	{
-		T ans;
-		for(auto fn : functions)
-			ans = fn(args...);
-		return ans;
-	}
-};
-
-template<typename ...Args>
-class DelegateExecutor<void, Args...>
-{
-public:
-	void invokeFunctions(std::vector<void (*) (Args...)> &functions, Args ...args)
-	{
-		for(auto fn : functions)
-			fn(args...);
-	}
-};
-
-
 template<typename Ret, typename ...Args>
-class Delegate
+class InvokeList
 {
 public:
 	
-	Delegate()
+	InvokeList()
 	:functions{}
 	{}
 	
-	Delegate(Ret (*fn) (Args...))
-	:functions{}
-	{
-		RemoveFunctions();
-		AddFunction(fn);
-	}
-	
-	~Delegate()
+	~InvokeList()
 	{}
 	
-	Delegate &operator=(Ret (*fn) (Args...))
+	inline std::vector<Ret (*) (Args ...)> &GetList()
 	{
-		RemoveFunctions();
-		AddFunction(fn);
-		return *this;
+		return this->functions;
 	}
 	
-	Ret operator()(Args ... args)
-	{
-		DelegateExecutor<Ret, Args...> ex;
-		return ex.invokeFunctions(functions, args...);
-	}
-	
-	Delegate &operator+=(Ret (*fn) (Args...))
-	{
-		AddFunction(fn);
-		return *this;
-	}
-	
-	Delegate &operator-=(Ret (*fn) (Args...))
-	{
-		RemoveFunction(fn);
-		return *this;
-	}
-
-private:
-
 	inline void AddFunction(Ret (*fn) (Args...))
 	{
 		functions.push_back(fn);
@@ -118,6 +63,83 @@ private:
 private:
 	
 	std::vector<Ret (*) (Args...)> functions;
+	
+};
+
+template<typename T, typename ...Args>
+class DelegateExecutor
+{
+public:
+	T invokeFunctions(InvokeList<T, Args...> &functions, Args ...args)
+	{
+		T ans;
+		auto &list = functions.GetList();
+		for(auto fn : list)
+			ans = fn(args...);
+		return ans;
+	}
+};
+
+template<typename ...Args>
+class DelegateExecutor<void, Args...>
+{
+public:
+	void invokeFunctions(InvokeList<void, Args...> &functions, Args ...args)
+	{
+		auto &list = functions.GetList();
+		for(auto fn : list)
+			fn(args...);
+	}
+};
+
+
+template<typename Ret, typename ...Args>
+class Delegate
+{
+public:
+	
+	Delegate()
+	:functions{}
+	{}
+	
+	Delegate(Ret (*fn) (Args...))
+	:functions{}
+	{
+		functions.RemoveFunctions();
+		functions.AddFunction(fn);
+	}
+	
+	~Delegate()
+	{}
+	
+	Delegate &operator=(Ret (*fn) (Args...))
+	{
+		functions.RemoveFunctions();
+		functions.AddFunction(fn);
+		return *this;
+	}
+	
+	Ret operator()(Args ... args)
+	{
+		DelegateExecutor<Ret, Args...> ex;
+		return ex.invokeFunctions(functions, args...);
+	}
+	
+	Delegate &operator+=(Ret (*fn) (Args...))
+	{
+		functions.AddFunction(fn);
+		return *this;
+	}
+	
+	Delegate &operator-=(Ret (*fn) (Args...))
+	{
+		functions.RemoveFunction(fn);
+		return *this;
+	}
+
+private:
+	
+	InvokeList<Ret, Args...> functions;
 	
 };
 
