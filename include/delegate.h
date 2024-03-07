@@ -51,9 +51,10 @@ public:
 	{}
 	
 	Delegate(Ret (*fn) (Args...))
+	:functions{}
 	{
-		functions.clear();
-		functions.push_back(fn);
+		RemoveFunctions();
+		AddFunction(fn);
 	}
 	
 	~Delegate()
@@ -61,8 +62,8 @@ public:
 	
 	Delegate &operator=(Ret (*fn) (Args...))
 	{
-		functions.clear();
-		functions.push_back(fn);
+		RemoveFunctions();
+		AddFunction(fn);
 		return *this;
 	}
 	
@@ -74,35 +75,24 @@ public:
 	
 	Delegate &operator+=(Ret (*fn) (Args...))
 	{
-		functions.push_back(fn);
+		AddFunction(fn);
 		return *this;
 	}
 	
 	Delegate &operator-=(Ret (*fn) (Args...))
 	{
-		/*
-		for(int i = 0; i < functions.size(); ++i)
-		{
-			if(functions[i] == fn)
-			{
-				functions[i] = functions[functions.size()-1];
-				functions.pop_back();
-			}
-		}
-		*/
 		RemoveFunction(fn);
 		return *this;
 	}
 
 private:
-	/*
-	void AddFunction(Ret (*fn) (Args...))
+
+	inline void AddFunction(Ret (*fn) (Args...))
 	{
-		this.functions.push_back(fn);
+		functions.push_back(fn);
 	}
-	*/
 	
-	void RemoveFunction(Ret (*fn) (Args...))
+	inline void RemoveFunction(Ret (*fn) (Args...))
 	{
 		size_t i;
 		for(i = 0; i < functions.size(); ++i)
@@ -119,6 +109,12 @@ private:
 			}
 		}
 	}
+	
+	inline void RemoveFunctions()
+	{
+		functions.clear();
+	}
+	
 private:
 	
 	std::vector<Ret (*) (Args...)> functions;

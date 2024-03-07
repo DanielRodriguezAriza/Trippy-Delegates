@@ -43,6 +43,7 @@ int main()
 	Print p = PrintNumber;
 	p += PrintMoney;
 	p += PrintThing;
+	p += PrintNumber;
 	p -= PrintNumber;
 	p(1);
 	
