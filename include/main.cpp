@@ -7,7 +7,7 @@
 
 //DRA_MAKE_DELEGATE(void, (int), Print);
 
-make_delegate(void(int)) Print;
+make_delegate(void(int), Print);
 
 void PrintNumber(int num)
 {
@@ -28,7 +28,7 @@ void PrintThing(int t)
 
 //typedef Delegate<int(int, int)> Print2;
 
-make_delegate(int(int,int)) Print2;
+delegate<int(int,int)> Print2;
 
 int PrintNumber2(int a, int b)
 {

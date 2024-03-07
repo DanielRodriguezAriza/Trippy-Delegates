@@ -8,6 +8,9 @@ extern "C" {
 
 // Code goes here lol
 
+
+
+
 #ifdef __cplusplus
 }
 #endif
@@ -43,7 +46,8 @@ extern "C" {
 	Non capturing lambdas can decay to function pointers, thus, they are supported, but to prevent UB, capturing lambdas are currently NOT supported.
 */
 
-#define make_delegate(sig) typedef Delegate<sig>
+#define make_delegate(sig, name) typedef Delegate<sig> name
+#define delegate typedef Delegate
 
 template<typename Ret, typename ...Args>
 class InvokeList
