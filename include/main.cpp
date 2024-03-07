@@ -41,11 +41,14 @@ int PrintMoney2(int a, int b)
 
 int main()
 {
+	int i;
 	printf("\n\nPrint: (checking order keeping):\n");
 	Print p = PrintNumber;
 	p += PrintMoney;
 	p += PrintThing;
 	p += PrintNumber;
+	//p += [i](int x) -> void {printf("this is a test\n");};
+	p += [](int x) -> void {printf("this is a test\n");};
 	p -= PrintNumber;
 	p(1);
 	
