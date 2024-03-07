@@ -124,10 +124,15 @@ public:
 		return *this;
 	}
 	
-	Ret operator()(Args ... args)
+	Ret Invoke(Args ...args)
 	{
 		DelegateExecutor<Ret, Args...> ex;
 		return ex.invokeFunctions(functions, args...);
+	}
+	
+	Ret operator()(Args ... args)
+	{
+		return this->Invoke(args...);
 	}
 	
 	Delegate &operator+=(Ret (*fn) (Args...))
