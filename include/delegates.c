@@ -3,6 +3,13 @@
 //this is like C#'s public delgate void Print(int value);
 #define MAKE_DELEGATE(ret, args, name) typedef ret (*name) args
 
+#define MAKE_DELEGATE_LIST(type) type *lst;
+
+void delegate_add_function(delegate *d, void *fn)
+void delegate_remove_function(delegate *d, void *fn)
+size_t delegate_get_length(delegate *d)
+#define delegate_invoke(delegate, args) (for(size_t i = 0; i < delegate_get_length(delegate) - 1; ++i) delegate[i] args , delegate[delegate_get_length(delegate) - 1] args)
+
 //typedef void (*Print)(int);
 MAKE_DELEGATE(void, (int), Print);
 
