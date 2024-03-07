@@ -1,35 +1,30 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-//this is like C#'s public delgate void Print(int value);
-#define MAKE_DELEGATE(ret, args, name) typedef ret (*name) args
+#define DELEGATE_IMPLEMENTATION
+#include "PrintDelegate.h"
 
-#define MAKE_DELEGATE_LIST(type) type *lst;
-
-void delegate_add_function(delegate *d, void *fn)
-void delegate_remove_function(delegate *d, void *fn)
-size_t delegate_get_length(delegate *d)
-#define delegate_invoke(delegate, args) (for(size_t i = 0; i < delegate_get_length(delegate) - 1; ++i) delegate[i] args , delegate[delegate_get_length(delegate) - 1] args)
-
-//typedef void (*Print)(int);
-MAKE_DELEGATE(void, (int), Print);
-
-void PrintNumber(int num)
+int PrintNumber(int x, int y)
 {
-	printf("Number: %d\n", num);
+	printf("x = %d, y = %d\n", x,y);
 }
 
-void PrintMoney(int money)
+int PrintMoney(int x, int y)
 {
-	printf("Money: %d\n", money);
+	printf("DINERO! x = %d, y = %d\n", x*2,y*3);
 }
 
 int main()
 {
-	Print printDelegate = PrintNumber;
-	printDelegate(1000);
-	
-	printDelegate = PrintMoney;
-	printDelegate(1000);
-	
+	PrintDelegate delegate;
+	PrintDelegate_init(&delegate);
+	PrintDelegate_add(&delegate, PrintNumber);
+	PrintDelegate_add(&delegate, PrintMoney);
+	PrintDelegate_add(&delegate, PrintNumber);
+	PrintDelegate_add(&delegate, PrintMoney);
+	PrintDelegate_remove(&delegate, PrintMoney);
+	PrintDelegate_invoke(&delegate,10,20);
+	//PrintDelegate_invoke(&delegate,30,40);
+	PrintDelegate_free(&delegate);
 	return 0;
 }

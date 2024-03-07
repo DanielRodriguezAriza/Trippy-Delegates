@@ -12,19 +12,46 @@
 
 #endif
 
+
+
+#ifndef FREE_FUNCTION
+#define FREE_FUNCTION free
+#endif
+
+#ifndef ALLOC_FUNCTION
+#define ALLOC_FUNCTION malloc
+#endif
+
+#ifndef REALLOC_FUNCTION
+#define REALLOC_FUNCTION realloc
+#endif
+
+
+
+
 #ifndef RETURN_TYPE
 #define RETURN_TYPE void
-#error "\"RETURN_TYPE\" must be defined."
+#error "RETURN_TYPE must be defined as a data type."
+#endif
+
+#ifndef RETURN_TYPE_IS_VOID
+#define RETURN_TYPE_IS_VOID 1
+#error "RETURN_TYPE_IS_VOID must be defined as 0 or 1"
 #endif
 
 #ifndef ARGUMENTS
-#define ARGUMENTS (void)
-#error "\"ARGUMENTS\" must be defined."
+#define ARGUMENTS int i
+#error "ARGUMENTS must be defined as a comma separated list of data types and arguments named as arg1, arg2, ..., argN."
+#endif
+
+#ifndef ARGUMENTS_NAMES
+#define ARGUMENTS_NAMES i
+#error "ARGUMENTS_NAMES must be defined as a comma separated list of argument names."
 #endif
 
 #ifndef NAME
 #define NAME undefined_delegate
-#error "\"NAME\" must be defined."
+#error "NAME must be defined."
 #endif
 
 #ifndef LINKAGE
@@ -39,11 +66,12 @@
 #define FUNCTION_POINTER_TYPE DRA_CAT_2(NAME, _function_ptr)
 #endif
 
-typedef RETURN_TYPE (*FUNCTION_POINTER_TYPE) ARGUMENTS;
+typedef RETURN_TYPE (*FUNCTION_POINTER_TYPE) (ARGUMENTS);
 
 typedef struct {
 	FUNCTION_POINTER_TYPE *function_list;
 	size_t function_count;
+	size_t function_capacity;
 } DELEGATE_TYPE;
 
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_init) (DELEGATE_TYPE *delegate);
@@ -52,10 +80,92 @@ LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_free) (DELEGATE_TYPE *delegate);
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_add) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
 
-LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) ARGUMENTS;
+LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS);
 
-#undef RETURN_TYPEa
+LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate);
+
+#ifdef DELEGATE_IMPLEMENTATION
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_init) (DELEGATE_TYPE *delegate)
+{
+	delegate->function_list = NULL;
+	delegate->function_count = 0;
+	delegate->function_capacity = 0;
+}
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_free) (DELEGATE_TYPE *delegate)
+{
+	FREE_FUNCTION(delegate->function_list);
+	delegate->function_count = 0;
+	delegate->function_capacity = 0;
+}
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_add) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function)
+{
+	DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc)(delegate);
+	delegate->function_list[delegate->function_count] = function;
+	delegate->function_count += 1;
+}
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function)
+{
+	for(size_t i = 0; i < delegate->function_count; ++i)
+	{
+		if((delegate->function_list)[i] == function)
+		{
+			while(i < delegate->function_count - 1)
+			{
+				(delegate->function_list)[i] = (delegate->function_list)[i+1];
+				++i;
+			}
+			delegate->function_count -= 1;
+			break;
+		}
+	}
+}
+
+LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS)
+{
+	#if RETURN_TYPE_IS_VOID
+	for(size_t i = 0; i < delegate->function_count; ++i)
+		(delegate->function_list)[i](ARGUMENTS_NAMES);
+	#else
+	RETURN_TYPE ans;
+	for(size_t i = 0; i < delegate->function_count; ++i)
+		ans = (delegate->function_list)[i](ARGUMENTS_NAMES);
+	return ans;
+	#endif
+}
+
+LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate)
+{
+	if(delegate->function_count >= delegate->function_capacity)
+	{
+		size_t new_capacity = delegate->function_capacity == 0 ? 8 : delegate->function_capacity * 2;
+		void *ptr = realloc(delegate->function_list, sizeof(FUNCTION_POINTER_TYPE) * new_capacity);
+		
+		if(ptr == NULL)
+			return 1;
+		
+		delegate->function_list = ptr;
+		delegate->function_capacity = new_capacity;
+	}
+	return 0;
+}
+
+#undef DELEGATE_IMPLEMENTATION
+#endif
+
+
+#undef RETURN_TYPE
+#undef RETURN_TYPE_IS_VOID
 #undef ARGUMENTS
+#undef ARGUMENTS_NAMES
 #undef NAME
 #undef DELEGATE_TYPE
 #undef FUNCTION_POINTER_TYPE
+
+
+#undef FREE_FUNCTION
+#undef ALLOC_FUNCTION
+#undef REALLOC_FUNCTION
