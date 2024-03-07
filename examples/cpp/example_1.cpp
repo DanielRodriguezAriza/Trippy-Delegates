@@ -3,7 +3,7 @@
 
 #include "../../include/delegate.hpp"
 
-delegate<void(int)> Print;
+DelegateType<void(int)> Print;
 
 void PrintNumber(int num)
 {
@@ -21,7 +21,7 @@ void PrintThing(int t)
 }
 
 
-delegate<int(int,int)> Print2;
+DelegateType<int(int,int)> Print2;
 
 int PrintNumber2(int a, int b)
 {

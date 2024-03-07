@@ -1,53 +1,9 @@
-#ifndef DRA_DELEGATE_H
-#define DRA_DELEGATE_H
-
-/* C Delegates */
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// Code goes here lol
-
-
-
-
-#ifdef __cplusplus
-}
-#endif
-
-/* C++ Delegates */
-#ifdef __cplusplus
+#ifndef DRA_DELEGATE_HPP
+#define DRA_DELEGATE_HPP
 
 #include <vector>
 
-/*
-	In the old version, the Delegate class used to take as template parameters <typename Ret, typename ...Args>, which would lead to Delegate declarations that looked like this:
-	
-		Delegate<int,int,int> d = add; //functions that have a signature int(int,int);
-	
-	The following macros were used as helpers for users:
-	
-		#define DRA_INTERNAL_EXTRACT_ARGS(...) __VA_ARGS__
-		#define DRA_MAKE_DELEGATE(ret, args, name) typedef Delegate<ret, DRA_INTERNAL_EXTRACT_ARGS args > name
-	
-	This is no longer required, as the current implementation makes use of C++'s function signature notation in templates to allow users to more easily and intuitively define delegates:
-		
-		Delegate<int(int,int)> d = add; //functions that have a signature int(int,int);
-	
-	This means that no helper macros are required so as to offer a similar notation to that of other programming languages that support delegates as built ins. In any case, there is a make_delegate() macro that allows creating delegate types, similar to the delegate keyword in other languages.
-		
-		make_delegate(int(int,int)) Op;
-		
-		Op o = add;
-		o += sub;
-		o += mul;
-		
-	
-	Non capturing lambdas can decay to function pointers, thus, they are supported, but to prevent UB, capturing lambdas are currently NOT supported.
-*/
-
-#define make_delegate(sig, name) typedef Delegate<sig> name
-#define delegate typedef Delegate
+#define DelegateType typedef Delegate
 
 template<typename Ret, typename ...Args>
 class InvokeList
@@ -184,6 +140,5 @@ private:
 	InvokeList<Ret, Args...> functions;
 	
 };
-#endif /* __cplusplus */
 
 #endif /* DRA_DELEGATE_H */
