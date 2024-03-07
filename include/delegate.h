@@ -1,189 +1,171 @@
-#ifndef DRA_DELEGATE_H
-#define DRA_DELEGATE_H
+#ifndef DRA_CAT_DEFINES
 
-/* C Delegates */
-#ifdef __cplusplus
-extern "C" {
+#define DRA_CAT_INTERNAL(x,y) x##y
+#define DRA_CAT(x,y) DRA_CAT_INTERNAL(x,y)
+#define DRA_CAT_2(x1,x2)             DRA_CAT(x1,x2)
+#define DRA_CAT_3(x1,x2,x3)          DRA_CAT(x1,DRA_CAT_2(x2,x3))
+#define DRA_CAT_4(x1,x2,x3,x4)       DRA_CAT(x1,DRA_CAT_3(x2,x3,x4))
+#define DRA_CAT_5(x1,x2,x3,x4,x5)    DRA_CAT(x1,DRA_CAT_4(x2,x3,x4,x5))
+#define DRA_CAT_6(x1,x2,x3,x4,x5,x6) DRA_CAT(x1,DRA_CAT_5(x2,x3,x4,x5,x6))
+
+#define DRA_CAT_DEFINES
+
 #endif
 
-// Code goes here lol
 
 
-
-
-#ifdef __cplusplus
-}
+#ifndef FREE_FUNCTION
+#define FREE_FUNCTION free
 #endif
 
-/* C++ Delegates */
-#ifdef __cplusplus
+#ifndef ALLOC_FUNCTION
+#define ALLOC_FUNCTION malloc
+#endif
 
-#include <vector>
+#ifndef REALLOC_FUNCTION
+#define REALLOC_FUNCTION realloc
+#endif
 
-/*
-	In the old version, the Delegate class used to take as template parameters <typename Ret, typename ...Args>, which would lead to Delegate declarations that looked like this:
-	
-		Delegate<int,int,int> d = add; //functions that have a signature int(int,int);
-	
-	The following macros were used as helpers for users:
-	
-		#define DRA_INTERNAL_EXTRACT_ARGS(...) __VA_ARGS__
-		#define DRA_MAKE_DELEGATE(ret, args, name) typedef Delegate<ret, DRA_INTERNAL_EXTRACT_ARGS args > name
-	
-	This is no longer required, as the current implementation makes use of C++'s function signature notation in templates to allow users to more easily and intuitively define delegates:
-		
-		Delegate<int(int,int)> d = add; //functions that have a signature int(int,int);
-	
-	This means that no helper macros are required so as to offer a similar notation to that of other programming languages that support delegates as built ins. In any case, there is a make_delegate() macro that allows creating delegate types, similar to the delegate keyword in other languages.
-		
-		make_delegate(int(int,int)) Op;
-		
-		Op o = add;
-		o += sub;
-		o += mul;
-		
-	
-	Non capturing lambdas can decay to function pointers, thus, they are supported, but to prevent UB, capturing lambdas are currently NOT supported.
-*/
 
-#define make_delegate(sig, name) typedef Delegate<sig> name
-#define delegate typedef Delegate
 
-template<typename Ret, typename ...Args>
-class InvokeList
+
+#ifndef RETURN_TYPE
+#define RETURN_TYPE void
+#error "RETURN_TYPE must be defined as a data type."
+#endif
+
+#ifndef RETURN_TYPE_IS_VOID
+#define RETURN_TYPE_IS_VOID 1
+#error "RETURN_TYPE_IS_VOID must be defined as 0 or 1"
+#endif
+
+#ifndef ARGUMENTS
+#define ARGUMENTS int i
+#error "ARGUMENTS must be defined as a comma separated list of data types and arguments named as arg1, arg2, ..., argN."
+#endif
+
+#ifndef ARGUMENTS_NAMES
+#define ARGUMENTS_NAMES i
+#error "ARGUMENTS_NAMES must be defined as a comma separated list of argument names."
+#endif
+
+#ifndef NAME
+#define NAME undefined_delegate
+#error "NAME must be defined."
+#endif
+
+#ifndef LINKAGE
+#define LINKAGE static inline
+#endif
+
+#ifndef DELEGATE_TYPE
+#define DELEGATE_TYPE NAME
+#endif
+
+#ifndef FUNCTION_POINTER_TYPE
+#define FUNCTION_POINTER_TYPE DRA_CAT_2(NAME, _function_ptr)
+#endif
+
+typedef RETURN_TYPE (*FUNCTION_POINTER_TYPE) (ARGUMENTS);
+
+typedef struct {
+	FUNCTION_POINTER_TYPE *function_list;
+	size_t function_count;
+	size_t function_capacity;
+} DELEGATE_TYPE;
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_init) (DELEGATE_TYPE *delegate);
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_free) (DELEGATE_TYPE *delegate);
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_add) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
+
+LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS);
+
+LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate);
+
+#ifdef DELEGATE_IMPLEMENTATION
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_init) (DELEGATE_TYPE *delegate)
 {
-public:
-	
-	InvokeList()
-	:functions{}
-	{}
-	
-	~InvokeList()
-	{}
-	
-	inline std::vector<Ret (*) (Args ...)> &GetList()
+	delegate->function_list = NULL;
+	delegate->function_count = 0;
+	delegate->function_capacity = 0;
+}
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_free) (DELEGATE_TYPE *delegate)
+{
+	FREE_FUNCTION(delegate->function_list);
+	delegate->function_count = 0;
+	delegate->function_capacity = 0;
+}
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_add) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function)
+{
+	DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc)(delegate);
+	delegate->function_list[delegate->function_count] = function;
+	delegate->function_count += 1;
+}
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function)
+{
+	for(size_t i = 0; i < delegate->function_count; ++i)
 	{
-		return this->functions;
-	}
-	
-	inline void AddFunction(Ret (*fn) (Args...))
-	{
-		functions.push_back(fn);
-	}
-	
-	inline void RemoveFunction(Ret (*fn) (Args...))
-	{
-		size_t i;
-		for(i = 0; i < functions.size(); ++i)
+		if((delegate->function_list)[i] == function)
 		{
-			if(functions[i] == fn)
+			while(i < delegate->function_count - 1)
 			{
-				while(i < functions.size() - 1)
-				{
-					functions[i] = functions[i+1];
-					++i;
-				}
-				functions.pop_back();
-				break;
+				(delegate->function_list)[i] = (delegate->function_list)[i+1];
+				++i;
 			}
+			delegate->function_count -= 1;
+			break;
 		}
 	}
-	
-	inline void RemoveFunctions()
-	{
-		functions.clear();
-	}
-	
-private:
-	
-	std::vector<Ret (*) (Args...)> functions;
-	
-};
+}
 
-template<typename T, typename ...Args>
-class DelegateExecutor
+LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS)
 {
-public:
-	T invokeFunctions(InvokeList<T, Args...> &functions, Args ...args)
-	{
-		T ans;
-		auto &list = functions.GetList();
-		for(auto fn : list)
-			ans = fn(args...);
-		return ans;
-	}
-};
+	#if RETURN_TYPE_IS_VOID
+	for(size_t i = 0; i < delegate->function_count; ++i)
+		(delegate->function_list)[i](ARGUMENTS_NAMES);
+	#else
+	RETURN_TYPE ans;
+	for(size_t i = 0; i < delegate->function_count; ++i)
+		ans = (delegate->function_list)[i](ARGUMENTS_NAMES);
+	return ans;
+	#endif
+}
 
-template<typename ...Args>
-class DelegateExecutor<void, Args...>
+LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate)
 {
-public:
-	void invokeFunctions(InvokeList<void, Args...> &functions, Args ...args)
+	if(delegate->function_count >= delegate->function_capacity)
 	{
-		auto &list = functions.GetList();
-		for(auto fn : list)
-			fn(args...);
+		size_t new_capacity = delegate->function_capacity == 0 ? 8 : delegate->function_capacity * 2;
+		void *ptr = realloc(delegate->function_list, sizeof(FUNCTION_POINTER_TYPE) * new_capacity);
+		
+		if(ptr == NULL)
+			return 1;
+		
+		delegate->function_list = ptr;
+		delegate->function_capacity = new_capacity;
 	}
-};
+	return 0;
+}
+
+#undef DELEGATE_IMPLEMENTATION
+#endif
 
 
-template<typename Signature>
-class Delegate;
+#undef RETURN_TYPE
+#undef RETURN_TYPE_IS_VOID
+#undef ARGUMENTS
+#undef ARGUMENTS_NAMES
+#undef NAME
+#undef DELEGATE_TYPE
+#undef FUNCTION_POINTER_TYPE
 
-template<typename Ret, typename ...Args>
-class Delegate<Ret(Args...)>
-{
-public:
-	
-	Delegate()
-	:functions{}
-	{}
-	
-	Delegate(Ret fn (Args...))
-	:functions{}
-	{
-		functions.RemoveFunctions();
-		functions.AddFunction(fn);
-	}
-	
-	~Delegate()
-	{}
-	
-	Delegate &operator=(Ret fn (Args...))
-	{
-		functions.RemoveFunctions();
-		functions.AddFunction(fn);
-		return *this;
-	}
-	
-	Ret Invoke(Args ...args)
-	{
-		DelegateExecutor<Ret, Args...> ex;
-		return ex.invokeFunctions(functions, args...);
-	}
-	
-	Ret operator()(Args ... args)
-	{
-		return this->Invoke(args...);
-	}
-	
-	Delegate &operator+=(Ret fn (Args...))
-	{
-		functions.AddFunction(fn);
-		return *this;
-	}
-	
-	Delegate &operator-=(Ret fn (Args...))
-	{
-		functions.RemoveFunction(fn);
-		return *this;
-	}
 
-private:
-	
-	InvokeList<Ret, Args...> functions;
-	
-};
-#endif /* __cplusplus */
-
-#endif /* DRA_DELEGATE_H */
+#undef FREE_FUNCTION
+#undef ALLOC_FUNCTION
+#undef REALLOC_FUNCTION
