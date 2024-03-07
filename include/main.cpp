@@ -3,7 +3,9 @@
 
 #include "delegate.h"
 
-typedef Delegate<void, int> Print;
+//typedef Delegate<void, int> Print;
+
+DRA_MAKE_DELEGATE(void, (int), Print);
 
 void PrintNumber(int num)
 {

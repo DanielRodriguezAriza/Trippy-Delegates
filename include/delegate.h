@@ -1,19 +1,24 @@
 #ifndef DRA_DELEGATE_H
 #define DRA_DELEGATE_H
 
+/* C Delegates */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//C delegate code goes here lol
+// Code goes here lol
 
 #ifdef __cplusplus
 }
 #endif
 
-//C++ delegate code goes here lmao
+/* C++ Delegates */
+#ifdef __cplusplus
 
 #include <vector>
+
+#define DRA_INTERNAL_EXTRACT_ARGS(...) __VA_ARGS__
+#define DRA_MAKE_DELEGATE(ret, args, name) typedef Delegate<ret, DRA_INTERNAL_EXTRACT_ARGS args > name
 
 template<typename Ret, typename ...Args>
 class InvokeList
@@ -142,6 +147,6 @@ private:
 	InvokeList<Ret, Args...> functions;
 	
 };
+#endif /* __cplusplus */
 
-
-#endif
+#endif /* DRA_DELEGATE_H */
