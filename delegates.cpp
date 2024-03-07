@@ -1,6 +1,32 @@
 #include <iostream>
 #include <vector>
 
+
+template<typename T, typename ...Args>
+class DelegateExecutor
+{
+public:
+	T invokeFunctions(std::vector<T (*) (Args...)> &functions, Args ...args)
+	{
+		T ans;
+		for(auto fn : functions)
+			ans = fn(args...);
+		return ans;
+	}
+};
+
+template<typename ...Args>
+class DelegateExecutor<void, Args...>
+{
+public:
+	void invokeFunctions(std::vector<void (*) (Args...)> &functions, Args ...args)
+	{
+		for(auto fn : functions)
+			fn(args...);
+	}
+};
+
+
 template<typename Ret, typename ...Args>
 class Delegate
 {
@@ -22,12 +48,10 @@ public:
 		return *this;
 	}
 	
-	void operator()(Args ... args)
+	Ret operator()(Args ... args)
 	{
-		for(auto fn : functions)
-		{
-			fn(args ...);
-		}
+		DelegateExecutor<Ret, Args...> ex;
+		return ex.invokeFunctions(functions, args...);
 	}
 	
 	Delegate &operator+=(Ret (*fn) (Args...))
@@ -48,13 +72,12 @@ public:
 		}
 		return *this;
 	}
-	
+
 private:
 	
 	std::vector<Ret (*) (Args...)> functions;
 	
 };
-
 
 typedef Delegate<void, int> Print;
 
@@ -70,16 +93,18 @@ void PrintMoney(int money)
 
 
 
-typedef Delegate<void, int, int> Print2;
+typedef Delegate<int, int, int> Print2;
 
-void PrintNumber2(int a, int b)
+int PrintNumber2(int a, int b)
 {
 	printf("Numbers: %d, %d\n", a, b);
+	return 1;
 }
 
-void PrintMoney2(int a, int b)
+int PrintMoney2(int a, int b)
 {
 	printf("Money Money Money~ : %d, %d\n", a, b);
+	return 2;
 }
 
 
@@ -101,11 +126,15 @@ int main()
 	
 	printf("\n\nPrint2:\n");
 	
+	int x = 0;
+	
 	Print2 printDelegate2 = PrintNumber2;
-	printDelegate2(10, 20);
+	x = printDelegate2(10, 20);
+	printf("x = %d\n", x);
 	
 	printDelegate2 += PrintMoney2;
-	printDelegate2(30,40);
+	x = printDelegate2(30,40);
+	printf("x = %d\n", x);
 	
 	printDelegate2 -= PrintMoney2;
 	printDelegate2(69, 420);
