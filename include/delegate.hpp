@@ -152,10 +152,8 @@ public:
 	{
 		return this->functions.GetList();
 	}
-
-private:
 	
-	inline void Set(Ret fn(Args...)) //this should maybe be in the public interface, after all, it really does the same as operator= and the constructor so yeah.
+	inline void Set(Ret fn(Args...))
 	{
 		this->RemoveAll();
 		this->Add(fn);
