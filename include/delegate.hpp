@@ -22,12 +22,12 @@ public:
 		return this->functions;
 	}
 	
-	inline void AddFunction(Ret (*fn) (Args...))
+	inline void Add(Ret (*fn) (Args...))
 	{
 		functions.push_back(fn);
 	}
 	
-	inline void RemoveFunction(Ret (*fn) (Args...))
+	inline void Remove(Ret (*fn) (Args...))
 	{
 		size_t i;
 		for(i = 0; i < functions.size(); ++i)
@@ -45,7 +45,7 @@ public:
 		}
 	}
 	
-	inline void RemoveFunctions()
+	inline void RemoveAll()
 	{
 		functions.clear();
 	}
@@ -98,8 +98,7 @@ public:
 	Delegate(Ret fn (Args...))
 	:functions{}
 	{
-		functions.RemoveFunctions();
-		functions.AddFunction(fn);
+		this->Set(fn);
 	}
 	
 	~Delegate()
@@ -107,8 +106,7 @@ public:
 	
 	Delegate &operator=(Ret fn (Args...))
 	{
-		functions.RemoveFunctions();
-		functions.AddFunction(fn);
+		this->Set(fn);
 		return *this;
 	}
 	
@@ -125,14 +123,42 @@ public:
 	
 	Delegate &operator+=(Ret fn (Args...))
 	{
-		functions.AddFunction(fn);
+		this->Add(fn);
 		return *this;
 	}
 	
 	Delegate &operator-=(Ret fn (Args...))
 	{
-		functions.RemoveFunction(fn);
+		this->Remove(fn);
 		return *this;
+	}
+	
+	inline void Add(Ret fn(Args...))
+	{
+		this->functions.Add(fn);
+	}
+	
+	inline void Remove(Ret fn(Args...))
+	{
+		this->functions.Remove(fn);
+	}
+	
+	inline void RemoveAll()
+	{
+		this->functions.RemoveAll();
+	}
+	
+	inline std::vector<Ret(Args ...)> &GetInvocationList()
+	{
+		return this->functions.GetList();
+	}
+
+private:
+	
+	inline void Set(Ret fn(Args...))
+	{
+		this->RemoveAll();
+		this->Add(fn);
 	}
 
 private:
