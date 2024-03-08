@@ -79,10 +79,15 @@ LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_free) (DELEGATE_TYPE *delegate);
 
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_add) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove_all) (DELEGATE_TYPE *delegate);
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_set) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
 
 LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS);
 
 LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate);
+
+LINKAGE size_t DRA_CAT_2(DELEGATE_TYPE,_get_count) (DELEGATE_TYPE *delegate);
+LINKAGE FUNCTION_POINTER_TYPE *DRA_CAT_2(DELEGATE_TYPE,_get_invocation_list) (DELEGATE_TYPE *delegate);
 
 #ifdef DELEGATE_IMPLEMENTATION
 
@@ -124,6 +129,17 @@ LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove) (DELEGATE_TYPE *delegate, FUNCTION
 	}
 }
 
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove_all) (DELEGATE_TYPE *delegate)
+{
+	delegate->function_count = 0;
+}
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_set) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function)
+{
+	DRA_CAT_2(DELEGATE_TYPE,_remove_all)(delegate);
+	DRA_CAT_2(DELEGATE_TYPE,_add)(delegate, function);
+}
+
 LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS)
 {
 	#if RETURN_TYPE_IS_VOID
@@ -151,6 +167,16 @@ LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate)
 		delegate->function_capacity = new_capacity;
 	}
 	return 0;
+}
+
+LINKAGE size_t DRA_CAT_2(DELEGATE_TYPE,_get_count) (DELEGATE_TYPE *delegate)
+{
+	return delegate->function_count;
+}
+
+LINKAGE FUNCTION_POINTER_TYPE *DRA_CAT_2(DELEGATE_TYPE,_get_invocation_list) (DELEGATE_TYPE *delegate)
+{
+	return delegate->function_list;
 }
 
 #undef DELEGATE_IMPLEMENTATION

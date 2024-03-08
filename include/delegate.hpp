@@ -155,7 +155,7 @@ public:
 
 private:
 	
-	inline void Set(Ret fn(Args...))
+	inline void Set(Ret fn(Args...)) //this should maybe be in the public interface, after all, it really does the same as operator= and the constructor so yeah.
 	{
 		this->RemoveAll();
 		this->Add(fn);
