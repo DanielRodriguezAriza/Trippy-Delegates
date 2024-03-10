@@ -165,4 +165,84 @@ private:
 	
 };
 
+
+template<typename T, typename ...Args>
+class SinglecastDelegateExecutor
+{
+public:
+	T invokeFunction(T (*fn)(Args...), Args ...args)
+	{
+		if(fn == NULL)
+			return T{};
+		return fn(args...);
+	}
+};
+
+template<typename ...Args>
+class SinglecastDelegateExecutor<void, Args...>
+{
+public:
+	void invokeFunction(void (*fn)(Args...), Args ...args)
+	{
+		if(fn == NULL)
+			return;
+		fn(args...);
+	}
+};
+
+
+template<typename Signature>
+class SinglecastDelegate;
+
+template<typename Ret, typename ...Args>
+class SinglecastDelegate<Ret(Args...)>
+{
+public:
+	
+	SinglecastDelegate()
+	:function{NULL}
+	{}
+	
+	SinglecastDelegate(Ret fn (Args...))
+	:function{NULL}
+	{
+		this->Set(fn);
+	}
+	
+	~SinglecastDelegate()
+	{}
+	
+	SinglecastDelegate &operator=(Ret fn (Args...))
+	{
+		this->Set(fn);
+		return *this;
+	}
+	
+	Ret Invoke(Args ...args)
+	{
+		SinglecastDelegateExecutor<Ret,Args...> ex;
+		return ex.invokeFunction(function, args...);
+	}
+	
+	Ret operator()(Args ... args)
+	{
+		return this->Invoke(args...);
+	}
+	
+	inline void Set(Ret fn(Args...))
+	{
+		this->function = fn;
+	}
+	
+	inline Ret(*Get())(Args...)
+	{
+		return function;
+	}
+
+private:
+	
+	Ret (*function)(Args...);
+	
+};
+
 #endif /* DRA_DELEGATE_H */
