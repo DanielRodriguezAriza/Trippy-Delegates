@@ -54,6 +54,11 @@
 #error "NAME must be defined."
 #endif
 
+#ifndef DELEGATE_IS_MULTICAST
+#define DELEGATE_IS_MULTICAST
+#error "DELEGATE_IS_MULTICAST must be defined as 0 or 1."
+#endif
+
 #ifndef LINKAGE
 #define LINKAGE static inline
 #endif
@@ -69,28 +74,37 @@
 typedef RETURN_TYPE (*FUNCTION_POINTER_TYPE) (ARGUMENTS);
 
 typedef struct {
+#if DELEGATE_IS_MULTICAST
 	FUNCTION_POINTER_TYPE *function_list;
 	size_t function_count;
 	size_t function_capacity;
+#else
+	FUNCTION_POINTER_TYPE function;
+#endif
 } DELEGATE_TYPE;
 
+
+#if DELEGATE_IS_MULTICAST
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_init) (DELEGATE_TYPE *delegate);
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_free) (DELEGATE_TYPE *delegate);
 
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_add) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove_all) (DELEGATE_TYPE *delegate);
-LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_set) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
-
-LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS);
 
 LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate);
-
 LINKAGE size_t DRA_CAT_2(DELEGATE_TYPE,_get_count) (DELEGATE_TYPE *delegate);
 LINKAGE FUNCTION_POINTER_TYPE *DRA_CAT_2(DELEGATE_TYPE,_get_invocation_list) (DELEGATE_TYPE *delegate);
+#else
+LINKAGE FUNCTION_POINTER_TYPE DRA_CAT_2(DELEGATE_TYPE,_get_function_pointer) (DELEGATE_TYPE *delegate);
+#endif /* DELEGATE_IS_MULTICAST */
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_set) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function);
+LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS);
 
 #ifdef DELEGATE_IMPLEMENTATION
 
+#if DELEGATE_IS_MULTICAST
 LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_init) (DELEGATE_TYPE *delegate)
 {
 	delegate->function_list = NULL;
@@ -134,25 +148,6 @@ LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_remove_all) (DELEGATE_TYPE *delegate)
 	delegate->function_count = 0;
 }
 
-LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_set) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function)
-{
-	DRA_CAT_2(DELEGATE_TYPE,_remove_all)(delegate);
-	DRA_CAT_2(DELEGATE_TYPE,_add)(delegate, function);
-}
-
-LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS)
-{
-	#if RETURN_TYPE_IS_VOID
-	for(size_t i = 0; i < delegate->function_count; ++i)
-		(delegate->function_list)[i](ARGUMENTS_NAMES);
-	#else
-	RETURN_TYPE ans;
-	for(size_t i = 0; i < delegate->function_count; ++i)
-		ans = (delegate->function_list)[i](ARGUMENTS_NAMES);
-	return ans;
-	#endif
-}
-
 LINKAGE int DRA_CAT_2(DELEGATE_TYPE,_maybe_realloc) (DELEGATE_TYPE *delegate)
 {
 	if(delegate->function_count >= delegate->function_capacity)
@@ -179,8 +174,42 @@ LINKAGE FUNCTION_POINTER_TYPE *DRA_CAT_2(DELEGATE_TYPE,_get_invocation_list) (DE
 	return delegate->function_list;
 }
 
+#else
+LINKAGE FUNCTION_POINTER_TYPE DRA_CAT_2(DELEGATE_TYPE,_get_function_pointer) (DELEGATE_TYPE *delegate)
+{
+	return delegate->function;
+}
+#endif /* DELEGATE_IS_MULTICAST */
+
+LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_set) (DELEGATE_TYPE *delegate, FUNCTION_POINTER_TYPE function)
+{
+	#if DELEGATE_IS_MULTICAST
+	DRA_CAT_2(DELEGATE_TYPE,_remove_all)(delegate);
+	DRA_CAT_2(DELEGATE_TYPE,_add)(delegate, function);
+	#else
+	delegate->function = function;
+	#endif
+}
+
+LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS)
+{
+	#if DELEGATE_IS_MULTICAST
+		#if RETURN_TYPE_IS_VOID
+		for(size_t i = 0; i < delegate->function_count; ++i)
+			(delegate->function_list)[i](ARGUMENTS_NAMES);
+		#else
+		RETURN_TYPE ans;
+		for(size_t i = 0; i < delegate->function_count; ++i)
+			ans = (delegate->function_list)[i](ARGUMENTS_NAMES);
+		return ans;
+		#endif
+	#else
+		return delegate->function(ARGUMENTS_NAMES);
+	#endif
+}
+
 #undef DELEGATE_IMPLEMENTATION
-#endif
+#endif /* DELEGATE_IMPLEMENTATION */
 
 
 #undef RETURN_TYPE
