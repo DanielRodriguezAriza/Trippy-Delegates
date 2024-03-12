@@ -6,6 +6,7 @@
 #define ARGUMENTS int arg1
 #define ARGUMENTS_NAMES arg1
 #define NAME PrintDelegateVoid
+#define DELEGATE_IS_MULTICAST 1
 #include "../../include/delegate.h"
 
 #endif
