@@ -3,7 +3,7 @@
 
 #include "../../include/delegate.hpp"
 
-typedef SinglecastDelegate<void(int)> Print;
+typedef Delegate<void(int)> Print;
 
 void PrintNumber(int num)
 {
@@ -23,13 +23,18 @@ void PrintThing(int t)
 
 int main()
 {
-	Print delegate;
-	delegate.Set(PrintNumber);
-	delegate.Invoke(69);
+	Print d1, d2;
 	
-	Print d2;
-	d2 = delegate;
-	d2.Invoke(10);
+	d1 += PrintNumber;
+	d1 += PrintMoney;
+	d1 += PrintThing;
+	
+	d2 = d1;
+	
+	d2 -= PrintNumber;
+	
+	d1.Invoke(1);
+	d2.Invoke(2);
 	
 	return 0;
 }
