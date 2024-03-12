@@ -191,6 +191,7 @@ LINKAGE void DRA_CAT_2(DELEGATE_TYPE,_set) (DELEGATE_TYPE *delegate, FUNCTION_PO
 	#endif
 }
 
+//TODO: Actually add some safety checks in case the function pointer is null before calling it! Same goes for cpp code...
 LINKAGE RETURN_TYPE DRA_CAT_2(DELEGATE_TYPE,_invoke) (DELEGATE_TYPE *delegate, ARGUMENTS)
 {
 	#if DELEGATE_IS_MULTICAST
